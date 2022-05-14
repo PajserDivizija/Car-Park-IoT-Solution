@@ -1,8 +1,8 @@
-import Layout from '../components/layout'
-import { useFetchUser } from '../lib/user'
+import Layout from '../components/layout';
+import { useFetchUser } from '../lib/user';
 
 function Home() {
-  const { user, loading } = useFetchUser()
+  const { user, loading } = useFetchUser();
 
   return (
     <Layout user={user} loading={loading}>
@@ -16,8 +16,7 @@ function Home() {
             To test the login click in <i>Login</i>
           </p>
           <p>
-            Once you have logged in you should be able to click in{' '}
-            <i>Profile</i> and <i>Logout</i>
+            Once you have logged in you should be able to click in <i>Profile</i> and <i>Logout</i>
           </p>
         </>
       )}
@@ -25,13 +24,13 @@ function Home() {
       {user && (
         <>
           <h4>Rendered user info on the client</h4>
-          <img src={user.picture} alt="user picture" />
+          <img src={user.picture} alt='user picture' />
           <p>nickname: {user.nickname}</p>
           <p>name: {user.name}</p>
         </>
       )}
     </Layout>
-  )
+  );
 }
 
-export default Home
+export default Home;

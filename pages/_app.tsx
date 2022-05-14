@@ -1,8 +1,10 @@
-import { ChakraProvider } from '@chakra-ui/react';
+import { ChakraProvider, extendTheme, withDefaultColorScheme } from '@chakra-ui/react';
+
+const customTheme = extendTheme(withDefaultColorScheme({ colorScheme: 'teal' }));
 
 function MyApp({ Component, pageProps }) {
   return (
-    <ChakraProvider resetCSS>
+    <ChakraProvider theme={customTheme} resetCSS>
       <Component {...pageProps} />
     </ChakraProvider>
   );
