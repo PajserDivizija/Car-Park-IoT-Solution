@@ -10,9 +10,11 @@ function Header() {
           <NextLink href='/' passHref>
             <NavLink>Početna</NavLink>
           </NextLink>
+
           <NextLink href='/projekt' passHref>
             <NavLink>Projekt</NavLink>
           </NextLink>
+
           <NextLink href='/tim' passHref>
             <NavLink>Tim</NavLink>
           </NextLink>
