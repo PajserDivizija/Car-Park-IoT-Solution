@@ -1,34 +1,72 @@
+import {
+  Button,
+  HStack,
+  Spinner,
+  Stat,
+  StatGroup,
+  StatHelpText,
+  StatLabel,
+  StatNumber,
+  useCallbackRef,
+} from '@chakra-ui/react';
+import useSWR from 'swr';
 import Layout from '../components/layout';
-import { useFetchUser } from '../lib/user';
 
 function Home() {
-  const { user, loading } = useFetchUser();
+  const { data: reservationRes, mutate } = useSWR('/api/v1/reservation');
+  const { data: sensorRes } = useSWR('/api/v1/sensor');
+
+  const reserve = useCallbackRef(() => {
+    const oldValue = reservationRes?.data.reserved;
+    const newValue = !oldValue;
+    mutate({ data: { reserved: newValue } }, false);
+
+    fetch('/api/v1/reservation', {
+      method: 'POST',
+      body: JSON.stringify({ reserved: newValue }),
+    }).then((res) => {
+      !res.ok && mutate({ data: { reserved: oldValue } }, false);
+    });
+  });
+
+  const arrived = useCallbackRef(() => {
+    alert('Super, oceš 5?');
+  });
 
   return (
-    <Layout user={user} loading={loading}>
-      <h1>Next.js and Auth0 Example</h1>
+    <Layout py={4}>
+      <StatGroup>
+        <Stat>
+          <StatLabel>Led</StatLabel>
+          {reservationRes ? (
+            <StatNumber>{reservationRes.data.reserved ? 'Da' : 'Ne'}</StatNumber>
+          ) : (
+            <StatNumber>
+              <Spinner />
+            </StatNumber>
+          )}
+          <StatHelpText>Parking rezerviran?</StatHelpText>
+        </Stat>
 
-      {loading && <p>Loading login info...</p>}
+        <Stat>
+          <StatLabel>Senzor</StatLabel>
+          {sensorRes ? (
+            <StatNumber>{sensorRes.data.sensor ? 'Da' : 'Ne'}</StatNumber>
+          ) : (
+            <StatNumber>
+              <Spinner />
+            </StatNumber>
+          )}
+          <StatHelpText>Vozilo parkirano?</StatHelpText>
+        </Stat>
+      </StatGroup>
 
-      {!loading && !user && (
-        <>
-          <p>
-            To test the login click in <i>Login</i>
-          </p>
-          <p>
-            Once you have logged in you should be able to click in <i>Profile</i> and <i>Logout</i>
-          </p>
-        </>
-      )}
-
-      {user && (
-        <>
-          <h4>Rendered user info on the client</h4>
-          <img src={user.picture} alt='user picture' />
-          <p>nickname: {user.nickname}</p>
-          <p>name: {user.name}</p>
-        </>
-      )}
+      <HStack>
+        <Button onClick={reserve}>
+          {reservationRes?.data.reserved ? 'Otkaži rezervaciju' : 'Rezerviraj parking'}
+        </Button>
+        <Button onClick={arrived}>Stigao sam</Button>
+      </HStack>
     </Layout>
   );
 }

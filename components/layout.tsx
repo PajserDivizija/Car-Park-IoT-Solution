@@ -1,10 +1,8 @@
-import { Box, Container, Flex } from '@chakra-ui/layout';
+import { Container, Flex } from '@chakra-ui/layout';
 import Head from 'next/head';
 import Header from './header';
 
-function Layout({ user, loading = false, children, title = 'Next.js with Auth0' }) {
-  console.log({ user, loading });
-
+function Layout({ children, title = 'Next.js with Auth0', ...rest }) {
   return (
     <>
       <Head>
@@ -14,7 +12,7 @@ function Layout({ user, loading = false, children, title = 'Next.js with Auth0' 
       <Flex direction='column' minH='100vh'>
         <Header />
 
-        <Container maxW='container.lg' flex={1}>
+        <Container maxW='container.lg' flex={1} {...rest}>
           {children}
         </Container>
       </Flex>
