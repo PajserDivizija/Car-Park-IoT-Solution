@@ -151,10 +151,20 @@ function App() {
         </Stat>
       </StatGroup>
 
-      <Button onClick={handleReservation} isLoading={isUpdating}>
-        {state.led === '0' && 'Rezerviraj'}
-        {state.led === '1' && 'Otkaži rezervaciju'}
-      </Button>
+      {state.led === '0' && (
+        <Button
+          onClick={handleReservation}
+          isLoading={isUpdating}
+          isDisabled={state.senzor === 'zauzeto'}
+        >
+          Rezerviraj
+        </Button>
+      )}
+      {state.led === '1' && (
+        <Button onClick={handleReservation} isLoading={isUpdating}>
+          Otkaži rezervaciju
+        </Button>
+      )}
     </Layout>
   );
 }
