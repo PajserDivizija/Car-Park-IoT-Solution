@@ -1,6 +1,7 @@
 import { AWSIoTProvider } from '@aws-amplify/pubsub/lib/Providers';
 import '@aws-amplify/ui/dist/style.css';
 import {
+  Button,
   Center,
   Spinner,
   Stat,
@@ -11,7 +12,7 @@ import {
   useBoolean,
 } from '@chakra-ui/react';
 import { Amplify, Auth, PubSub } from 'aws-amplify';
-import { Button, withAuthenticator } from 'aws-amplify-react';
+import { withAuthenticator } from 'aws-amplify-react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import React, { useEffect, useState } from 'react';
 import Layout from '../components/layout';
@@ -20,13 +21,15 @@ import awsConfig from '../src/aws-exports';
 Amplify.configure({ ...awsConfig, ssr: true });
 Auth.configure(awsConfig);
 
+const iotEspShadowBase = '$aws/things/esp-8266-v2/shadow';
+
 const iotEspShadow = {
-  get: '$aws/things/dev-esp8266/shadow/name/iot-esp-shadow/get',
-  getAccepted: '$aws/things/dev-esp8266/shadow/name/iot-esp-shadow/get/accepted',
-  getRejected: '$aws/things/dev-esp8266/shadow/name/iot-esp-shadow/get/rejected',
-  update: '$aws/things/dev-esp8266/shadow/name/iot-esp-shadow/update',
-  updateAccepted: '$aws/things/dev-esp8266/shadow/name/iot-esp-shadow/update/accepted',
-  updateRejected: '$aws/things/dev-esp8266/shadow/name/iot-esp-shadow/update/rejected',
+  get: `${iotEspShadowBase}/get`,
+  getAccepted: `${iotEspShadowBase}/get/accepted`,
+  getRejected: `${iotEspShadowBase}/get/rejected`,
+  update: `${iotEspShadowBase}/update`,
+  updateAccepted: `${iotEspShadowBase}/update/accepted`,
+  updateRejected: `${iotEspShadowBase}/update/rejected`,
 };
 
 // Apply plugin with configuration
@@ -37,21 +40,46 @@ Amplify.addPluggable(
   })
 );
 
+interface shadowData {
+  state: {
+    desired: {
+      led: string;
+      senzor: string;
+      id: string;
+    };
+    reported: {
+      led: '0' | '1';
+      senzor: 'slobodno' | 'zauzeto';
+      id: 'P01R02S06';
+    };
+  };
+}
+
 function App() {
   const [isLoading, { on, off }] = useBoolean();
-  const [state, setState] = useState<{ led: number; sensor: number } | null>(null);
+  const [isUpdating, updatingHandlers] = useBoolean();
+  const [state, setState] = useState<shadowData['state']['reported'] | null>(null);
 
   useEffect(() => {
-    const subscription = PubSub.subscribe([
-      iotEspShadow.getAccepted,
-      iotEspShadow.updateAccepted,
-    ]).subscribe({
-      next: ({ value }) => {
-        setState({
-          led: Number(value.state.reported.led),
-          sensor: Number(value.state.reported.senzor),
+    const subscription = PubSub.subscribe([iotEspShadow.getAccepted]).subscribe({
+      next: ({ value }: { value: shadowData }) => {
+        const newValue = value.state.reported;
+
+        setState((prevValue) => {
+          if (!prevValue) {
+            return newValue;
+          }
+
+          if (prevValue.led !== newValue.led) {
+            return newValue;
+          }
+
+          if (prevValue.senzor !== newValue.senzor) {
+            return newValue;
+          }
+
+          return prevValue;
         });
-        off();
       },
       error: (error) => console.error(error),
       complete: () => console.log('Done'),
@@ -63,9 +91,26 @@ function App() {
     };
   }, [off]);
 
+  useEffect(() => {
+    if (state) {
+      off();
+      updatingHandlers.off();
+    }
+  }, [off, state, updatingHandlers]);
+
   const revalidateData = () => {
     PubSub.publish(iotEspShadow.get, Math.random());
     on();
+  };
+
+  const handleReservation = () => {
+    if (state.led === '0' && state.senzor === 'slobodno') {
+      updatingHandlers.on();
+      PubSub.publish(iotEspShadow.update, { state: { desired: { led: '1' } } });
+    } else if (state.led === '1') {
+      updatingHandlers.on();
+      PubSub.publish(iotEspShadow.update, { state: { desired: { led: '0' } } });
+    }
   };
 
   if (isLoading) {
@@ -101,10 +146,15 @@ function App() {
 
         <Stat>
           <StatLabel>Senzor</StatLabel>
-          <StatNumber>{state.sensor}</StatNumber>
-          <StatHelpText>Parking zauzet?</StatHelpText>
+          <StatNumber>{state.senzor}</StatNumber>
+          <StatHelpText>Status parkinga</StatHelpText>
         </Stat>
       </StatGroup>
+
+      <Button onClick={handleReservation} isLoading={isUpdating}>
+        {state.led === '0' && 'Rezerviraj'}
+        {state.led === '1' && 'Otkaži rezervaciju'}
+      </Button>
     </Layout>
   );
 }
