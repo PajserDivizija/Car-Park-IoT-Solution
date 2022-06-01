@@ -1,0 +1,20 @@
+{
+  "dev": {
+    "awscloudformation": {
+      "AuthRoleName": "amplify-iotprojekt-dev-221142-authRole",
+      "UnauthRoleArn": "arn:aws:iam::184396859566:role/amplify-iotprojekt-dev-221142-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::184396859566:role/amplify-iotprojekt-dev-221142-authRole",
+      "Region": "us-east-1",
+      "DeploymentBucketName": "amplify-iotprojekt-dev-221142-deployment",
+      "UnauthRoleName": "amplify-iotprojekt-dev-221142-unauthRole",
+      "StackName": "amplify-iotprojekt-dev-221142",
+      "StackId": "arn:aws:cloudformation:us-east-1:184396859566:stack/amplify-iotprojekt-dev-221142/e743d500-dc66-11ec-b5b8-0e9ec36fe4d1",
+      "AmplifyAppId": "d2x2907itztsxs"
+    },
+    "categories": {
+      "auth": {
+        "iotprojekt55fe6616": {}
+      }
+    }
+  }
+}
